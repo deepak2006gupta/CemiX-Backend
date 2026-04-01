@@ -7,7 +7,7 @@ public class OrderRequest {
     private Long userId;
     private double distanceKm;
     private String paymentType;
-    private List<OrderItem> items;
+    private List<OrderItemRequest> items;
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
@@ -18,6 +18,6 @@ public class OrderRequest {
     public String getPaymentType() { return paymentType; }
     public void setPaymentType(String paymentType) { this.paymentType = paymentType; }
 
-    public List<OrderItem> getItems() { return items; }
-    public void setItems(List<OrderItem> items) { this.items = items; }
+    public List<OrderItemRequest> getItems() { return items; }
+    public void setItems(List<OrderItemRequest> items) { this.items = items; }
 }

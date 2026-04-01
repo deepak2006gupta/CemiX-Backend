@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.shop.buildmart.model.Order;
 import com.shop.buildmart.model.OrderItem;
+import com.shop.buildmart.model.OrderItemRequest;
 import com.shop.buildmart.model.Product;
 import com.shop.buildmart.repository.OrderItemRepository;
 import com.shop.buildmart.repository.OrderRepository;
@@ -25,7 +26,7 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
-    public Order placeOrder(Long userId, List<OrderItem> items, double distanceKm, String paymentType) {
+    public Order placeOrder(Long userId, List<OrderItemRequest> items, double distanceKm, String paymentType) {
 
         double total = 0;
 
@@ -40,7 +41,7 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         // Step 2: Process each item
-        for (OrderItem req : items) {
+        for (OrderItemRequest req : items) {
 
             Product product = productRepository.findById(req.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found"));
