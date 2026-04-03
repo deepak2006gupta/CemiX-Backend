@@ -2,11 +2,19 @@ package com.shop.buildmart.model;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
 public class OrderRequest {
 
+    @NotNull
     private Long userId;
     private double distanceKm;
+
+    @NotNull
     private String paymentType;
+
+    @Valid
     private List<OrderItemRequest> items;
 
     public Long getUserId() { return userId; }

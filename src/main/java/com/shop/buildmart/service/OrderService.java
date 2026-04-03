@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.shop.buildmart.exception.ResourceNotFoundException;
 import com.shop.buildmart.model.Order;
 import com.shop.buildmart.model.OrderItem;
 import com.shop.buildmart.model.OrderItemRequest;
@@ -26,11 +27,12 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
+    // ✅ PLACE ORDER
     public Order placeOrder(Long userId, List<OrderItemRequest> items, double distanceKm, String paymentType) {
 
         double total = 0;
 
-        // Step 1: Create Order first
+        // Create Order
         Order order = new Order();
         order.setUserId(userId);
         order.setStatus("PLACED");
@@ -40,17 +42,21 @@ public class OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        // Step 2: Process each item
+        // Process Items
         for (OrderItemRequest req : items) {
 
             Product product = productRepository.findById(req.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-            // Calculate total
+            // ✅ Stock check
+            if (product.getStock() < req.getQuantity()) {
+                throw new ResourceNotFoundException("Not enough stock for product: " + product.getName());
+            }
+
             double itemTotal = product.getPrice() * req.getQuantity();
             total += itemTotal;
 
-            // Step 3: Create OrderItem (ENTITY)
+            // Convert DTO → Entity
             OrderItem item = new OrderItem();
             item.setOrderId(savedOrder.getId());
             item.setProductId(req.getProductId());
@@ -59,18 +65,36 @@ public class OrderService {
 
             orderItemRepository.save(item);
 
-            // Step 4: Reduce stock
+            // Reduce stock
             product.setStock(product.getStock() - req.getQuantity());
             productRepository.save(product);
         }
 
-        // Step 5: Add delivery charge
+        // Delivery
         double deliveryCharge = distanceKm * 10;
 
         savedOrder.setDeliveryCharge(deliveryCharge);
         savedOrder.setTotalAmount(total + deliveryCharge);
 
-        // Step 6: Save updated order
         return orderRepository.save(savedOrder);
+    }
+
+    // ✅ GET ALL ORDERS
+    public List<Order> getAllOrders() {
+        return orderRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    // ✅ GET ORDERS BY USER
+    public List<Order> getUserOrders(Long userId) {
+        return orderRepository.findByUserId(userId);
+    }
+    public Order updateOrderStatus(Long orderId, String status) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        order.setStatus(status);
+
+        return orderRepository.save(order);
     }
 }
